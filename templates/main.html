@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Список товаров{% endblock %}
+
+{% block content %}
+    <h1 class="mb-4">Список песен</h1>
+
+    <!-- Поиск -->
+    <form method="get" class="text-center mb-4">
+        <div class="input-group w-50 mx-auto">
+            <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Поиск по песне или артисту..."
+                   class="form-control border-success">
+            <button class="btn btn-success" type="submit">🔍 Найти</button>
+        </div>
+    </form>
+
+    <!-- Фильтр по категориям -->
+    <div class="mb-3">
+        <strong>Жанры:</strong>
+        <a href="{% url 'main' %}"
+           class="btn btn-sm {% if not selected_genre %}btn-success{% else %}btn-outline-success{% endif %}">Все</a>
+        {% for genre in genres %}
+            <a href="?genre={{ genre.id }}"
+               class="btn btn-sm {% if genre.id|stringformat:"s" == selected_genre %}btn-success{% else %}btn-outline-success{% endif %}">
+                {{ genre.name }}
+            </a>
+        {% endfor %}
+    </div>
+
+    <!-- Список песен -->
+    <div class="d-flex flex-column align-items-center">
+        {% for song in songs %}
+            <div class="card mb-3 shadow-sm" style="width: 50%;">
+                <div class="row g-0">
+                    <div class="col-md-4">
+                        {% if song.album.cover %}
+                            <img src="{{ song.album.cover.url }}" class="img-fluid rounded-start"
+                                 alt="{{ song.title }}">
+                        {% else %}
+                            <img src="{% static 'no-image.png' %}" class="img-fluid rounded-start"
+                                 alt="Нет изображения">
+                        {% endif %}
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ song.title }}</h5>
+                            <p class="card-text">
+                                <strong>Артист:</strong> {{ song.artist.name }} <br>
+                                <strong>Альбом:</strong> {{ song.album.title }} <br>
+                                <strong>Жанр:</strong> {{ song.genre.name }}
+                            </p>
+                            {% if song.audio_file %}
+                                <audio controls preload="none" style="width: 100%;">
+                                    <source src="{{ song.audio_file.url }}" type="audio/mpeg">
+                                    Ваш браузер не поддерживает аудио.
+                                </audio>
+                            {% else %}
+                                <p class="text-muted">Аудиофайл отсутствует</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p>Нет доступных песен.</p>
+        {% endfor %}
+    </div>
+{% endblock %}
