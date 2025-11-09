@@ -20,6 +20,7 @@ class SongAdmin(admin.ModelAdmin):
     list_display = ("id", "title", "artist", "album")
     search_fields = ("title",)
 
+
 @admin.register(Genre)
 class GenreAdmin(admin.ModelAdmin):
     list_display = ("id", "name")

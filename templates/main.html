@@ -4,6 +4,7 @@
 {% block title %}Список товаров{% endblock %}
 
 {% block content %}
+    {% if user.is_authenticated %}
     <h1 class="mb-4">Список песен</h1>
 
     <!-- Поиск -->
@@ -62,8 +63,16 @@
                     </div>
                 </div>
             </div>
+
         {% empty %}
             <p>Нет доступных песен.</p>
         {% endfor %}
     </div>
+{% else %}
+    <div class="d-flex flex-column align-items-center">
+        <p>Для начала нужно авторизоваться</p>
+        <a class="nav-link" href="{% url 'login' %}">Войти</a>
+        <a class="nav-link" href="{% url 'register' %}">Регистрация</a>
+    </div>
+{% endif %}
 {% endblock %}
