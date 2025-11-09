@@ -1,9 +1,10 @@
 from django.contrib.auth import login
 from django.db.models import Q
 from django.shortcuts import render, redirect
+from django.views.generic.base import View
 
 from app.forms import RegisterForm
-from app.models import Genre, Song
+from app.models import Genre, Song, Artist
 
 
 def register_view(request):
@@ -38,3 +39,9 @@ def main_view(request):
         'genres': genres,
         'selected_genre': genre_id
     })
+
+
+class ArtisView(View):
+    def get(self, request, artist_id):
+        artist = Artist.objects.get(id=artist_id)
+        return render(request, "profile_artist.html", {"artist": artist})

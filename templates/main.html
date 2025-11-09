@@ -47,7 +47,7 @@
                         <div class="card-body">
                             <h5 class="card-title">{{ song.title }}</h5>
                             <p class="card-text">
-                                <strong>Артист:</strong> {{ song.artist.name }} <br>
+                                <strong>Артист:</strong> <a href="{% url 'artist' artist_id=song.artist.id %}">{{ song.artist.name }}</a><br>
                                 <strong>Альбом:</strong> {{ song.album.title }} <br>
                                 <strong>Жанр:</strong> {{ song.genre.name }}
                             </p>
