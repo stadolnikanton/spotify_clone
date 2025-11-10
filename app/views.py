@@ -7,7 +7,7 @@ from app.forms import RegisterForm
 from app.models import Genre, Song, Artist
 
 
-class Register(View):
+class RegisterView(View):
     def get(self, request):
         form = RegisterForm()
         return render(request, 'register.html', {'form': form})
@@ -25,7 +25,7 @@ class Register(View):
             return redirect('main')  # редирект на главную
 
 
-class Main(View):
+class MainView(View):
     def get(self, request):
         genres = Genre.objects.all()
         genre_id = request.GET.get('genre')
