@@ -7,38 +7,45 @@ from app.forms import RegisterForm
 from app.models import Genre, Song, Artist
 
 
-def register_view(request):
-    if request.method == 'POST':
+class Register(View):
+    def get(self, request):
+        form = RegisterForm()
+        return render(request, 'register.html', {'form': form})
+
+    def post(self, request):
         form = RegisterForm(request.POST)
+
         if form.is_valid():
             user = form.save(commit=False)
             user.set_password(form.cleaned_data['password'])  # хэшируем пароль
             user.save()
+
             login(request, user)  # сразу авторизуем пользователя
+
             return redirect('main')  # редирект на главную
-    else:
-        form = RegisterForm()
-    return render(request, 'register.html', {'form': form})
 
 
-def main_view(request):
-    genres = Genre.objects.all()
-    genre_id = request.GET.get('genre')
-    query = request.GET.get('q')
-    songs = Song.objects.all()
-    if genre_id:
-        songs = songs.filter(genre_id=genre_id)
-    if query:
-        songs = songs.filter(
-            Q(title__icontains=query) |
-            Q(artist__name__icontains=query)
-        )
+class Main(View):
+    def get(self, request):
+        genres = Genre.objects.all()
+        genre_id = request.GET.get('genre')
 
-    return render(request, 'main.html', {
-        'songs': songs,
-        'genres': genres,
-        'selected_genre': genre_id
-    })
+        query = request.GET.get('q')
+        songs = Song.objects.all()
+
+        if genre_id:
+            songs = songs.filter(genre_id=genre_id)
+        if query:
+            songs = songs.filter(
+                Q(title__icontains=query) |
+                Q(artist__name__icontains=query)
+            )
+
+        return render(request, 'main.html', {
+            'songs': songs,
+            'genres': genres,
+            'selected_genre': genre_id
+        })
 
 
 class ArtisView(View):
