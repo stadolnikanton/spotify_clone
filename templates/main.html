@@ -3,7 +3,6 @@
 {% block content %}
 <div class="container mt-4">
     <!-- Сообщения -->
-    {% if user.is_authenticated %}
     {% if messages %}
     <div class="mb-4">
         {% for message in messages %}
@@ -15,6 +14,7 @@
     </div>
     {% endif %}
 
+    {% if user.is_authenticated %}
     <div class="row">
         <!-- Основной контент -->
         <div class="col-lg-8">
@@ -23,8 +23,8 @@
                 <div class="card-body">
                     <form method="get" class="mb-0">
                         <div class="input-group">
-                            <input type="text" name="q" value="{{ request.GET.q }}" 
-                                   class="form-control border-success" 
+                            <input type="text" name="q" value="{{ request.GET.q }}"
+                                   class="form-control border-success"
                                    placeholder="Поиск по песне или артисту...">
                             <button class="btn btn-success" type="submit">
                                 <i class="fas fa-search me-1"></i>Найти
@@ -66,30 +66,63 @@
                             <div class="d-flex align-items-center justify-content-between">
                                 <div class="flex-grow-1 me-3">
                                     <h6 class="mb-1 fw-bold text-truncate">{{ song.title }}</h6>
-                                    <p class="mb-0 small text-muted">
+                                    <p class="mb-1 small text-muted">
                                         <a href="{% url 'artist' song.artist.id %}" class="text-decoration-none text-muted">
                                             {{ song.artist.name }}
                                         </a>
                                         {% if song.album %} • {{ song.album.title }}{% endif %}
                                     </p>
+
+                                    <!-- Блок рейтинга -->
+                                    <div class="song-rating mt-2">
+                                        <!-- Средний рейтинг -->
+                                        <div class="average-rating mb-1">
+                                            <small class="text-muted">
+                                                <i class="fas fa-star text-warning"></i>
+                                                {{ song.average_rating|floatformat:1 }}
+                                                <span class="text-muted">({{ song.total_ratings }})</span>
+                                            </small>
+                                        </div>
+
+                                        <!-- Звезды для оценки -->
+                                        <div class="rating-stars">
+                                            <form method="post" action="{% url 'rate_song' song.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                {% for i in "54321" %}
+                                                    {% with rating_value=forloop.revcounter %}
+                                                    <button type="submit" name="rating" value="{{ rating_value }}"
+                                                            class="btn btn-link p-0 border-0 bg-transparent rating-star"
+                                                            title="Оценить на {{ rating_value }}">
+                                                        <i class="{% if song.user_rating >= rating_value %}fas text-warning{% else %}far text-muted{% endif %} fa-star"></i>
+                                                    </button>
+                                                    {% endwith %}
+                                                {% endfor %}
+                                            </form>
+
+                                            <!-- Текущая оценка пользователя -->
+                                            {% if song.user_rating %}
+                                                <small class="text-muted ms-2">Ваша оценка: {{ song.user_rating }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
                                 </div>
-                                
+
                                 <div class="d-flex align-items-center gap-2">
                                     {% if song.audio_file %}
-                                    <audio controls class="me-2" style="height: 35px; width: 180px;">
+                                    <audio controls class="me-2" style="height: 35px; width: 188px;">
                                         <source src="{{ song.audio_file.url }}" type="audio/mpeg">
                                     </audio>
                                     {% endif %}
-                                    
+
                                     <form method="post" action="{% url 'toggle_favorite' song.id 'toggle' %}" class="mb-0">
                                         {% csrf_token %}
-                                        {% if song in user_favorite_songs %}
-                                        <button type="submit" class="btn btn-danger btn-sm" title="Удалить из избранного">
-                                            <i class="fas fa-heart me-1"></i>Убрать
+                                        {% if song.is_favorite %}
+                                        <button type="submit" class="btn btn-danger btn-sm" title="Убрать из избранного">
+                                            <i class="fas fa-heart"></i>
                                         </button>
                                         {% else %}
                                         <button type="submit" class="btn btn-outline-secondary btn-sm" title="Добавить в избранное">
-                                            <i class="far fa-heart me-1"></i>Добавить
+                                            <i class="far fa-heart"></i>
                                         </button>
                                         {% endif %}
                                     </form>
@@ -133,6 +166,12 @@
                                 <div class="flex-grow-1 me-2">
                                     <h6 class="mb-1 small fw-bold text-truncate">{{ song.title }}</h6>
                                     <small class="text-muted text-truncate d-block">{{ song.artist.name }}</small>
+                                    <!-- Рейтинг в плейлисте -->
+                                    {% if song.user_rating %}
+                                    <small class="text-warning">
+                                        <i class="fas fa-star"></i> Ваша оценка: {{ song.user_rating }}
+                                    </small>
+                                    {% endif %}
                                 </div>
                                 <form method="post" action="{% url 'toggle_favorite' song.id 'delete' %}" class="mb-0">
                                     {% csrf_token %}
@@ -156,8 +195,7 @@
             </div>
         </div>
     </div>
-</div>
-{% else %}
+    {% else %}
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card border-warning">
@@ -171,7 +209,7 @@
                     <i class="fas fa-music fa-4x text-warning mb-4"></i>
                     <h4 class="text-dark mb-3">Добро пожаловать!</h4>
                     <p class="text-muted mb-4">
-                        Чтобы получить доступ ко всем функциям, необходимо войти в систему.
+                        Чтобы получить доступ ко всем функциям, включая систему рейтингов, необходимо войти в систему.
                     </p>
                     <div class="d-flex justify-content-center gap-3 flex-wrap">
                         <a href="{% url 'login' %}" class="btn btn-success btn-lg">
@@ -185,5 +223,6 @@
             </div>
         </div>
     </div>
-{% endif %}
+    {% endif %}
+</div>
 {% endblock %}

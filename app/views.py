@@ -3,9 +3,12 @@ from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic.base import View
 from django.contrib import messages
+from django.http import JsonResponse
+from django.contrib.auth.mixins import LoginRequiredMixin
+
 
 from app.forms import RegisterForm
-from app.models import Genre, Playlist, Song, Artist
+from app.models import Genre, Playlist, Song, Artist, Rating
 
 
 class RegisterView(View):
@@ -34,6 +37,8 @@ class MainView(View):
         songs = Song.objects.all()
 
         user_favorite_songs = []
+        user_ratings_dict = {}
+
         if request.user.is_authenticated:
             favorite_playlist = Playlist.objects.filter(
                 user=request.user,
@@ -42,6 +47,14 @@ class MainView(View):
             if favorite_playlist:
                 user_favorite_songs = favorite_playlist.songs.all()
 
+            user_ratings = Rating.objects.filter(
+                user=request.user,
+                song__in=songs
+            ).select_related('song')
+
+            user_ratings_dict = {
+                rating.song_id: rating.rating for rating in user_ratings}
+
         if genre_id:
             songs = songs.filter(genre_id=genre_id)
         if query:
@@ -49,6 +62,10 @@ class MainView(View):
                 Q(title__icontains=query) |
                 Q(artist__name__icontains=query)
             )
+
+        for song in songs:
+            song.user_rating = user_ratings_dict.get(song.id)
+            song.is_favorite = song in user_favorite_songs
 
         return render(request, 'main.html', {
             'songs': songs,
@@ -68,7 +85,7 @@ class PlaylistView(View):
     def post(self, request, song_id, action):
         song = get_object_or_404(Song, id=song_id)
         if action == "toggle":
-            favorite_playlist = Playlist.objects.get_or_create(
+            favorite_playlist, created = Playlist.objects.get_or_create(
                 user=request.user,
                 is_favorite=True,
                 defaults={'title': 'Мои любимые треки'}
@@ -87,7 +104,7 @@ class PlaylistView(View):
 
         elif action == "delete":
             print("delete")
-            favorite_playlist = Playlist.objects.get_or_create(
+            favorite_playlist, created = Playlist.objects.get_or_create(
                 user=request.user,
                 is_favorite=True,
                 defaults={'title': 'Мои любимые треки'}
@@ -99,3 +116,30 @@ class PlaylistView(View):
                     song.title}" удалена из избранного')
 
             return redirect('/')
+
+
+class RateSongView(LoginRequiredMixin, View):
+
+    def post(self, request, song_id):
+        song = get_object_or_404(Song, id=song_id)
+        rating_value = int(request.POST.get('rating', 0))
+
+        if 1 <= rating_value <= 5:
+            rating, created = Rating.objects.update_or_create(
+                user=request.user,
+                song=song,
+                defaults={'rating': rating_value}
+            )
+
+            song.update_rating_stats()
+
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'success',
+                    'rating': rating_value,
+                    'average_rating': float(song.average_rating),
+                    'total_ratings': song.total_ratings,
+                    'is_new': created
+                })
+
+        return redirect(request.META.get('HTTP_REFERER', 'main'))
