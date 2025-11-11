@@ -1,7 +1,12 @@
 from django.contrib.auth.views import LoginView, LogoutView
-from django.urls import path
-
+from django.urls import path, include
+from django.shortcuts import redirect
 from app.views import PlaylistView, RegisterView, MainView, ArtistView
+
+
+def google_login(request):
+    return redirect('/accounts/google/login/')
+
 
 urlpatterns = [
     path('', MainView.as_view(), name='main'),
@@ -11,4 +16,8 @@ urlpatterns = [
     path('artist/<int:artist_id>/', ArtistView.as_view(), name='artist'),
     path('songs/<int:song_id>/<str:action>/toggle-favorite/',
          PlaylistView.as_view(), name='toggle_favorite'),
+
+    path('auth/google/', google_login, name='google_login'),
+    path('accounts/', include('allauth.urls')),
+
 ]
