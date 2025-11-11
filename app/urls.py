@@ -1,14 +1,14 @@
-import debug_toolbar
 from django.contrib.auth.views import LoginView, LogoutView
-from django.urls import path, include
+from django.urls import path
 
-from app.views import RegisterView, MainView, ArtisView
+from app.views import PlaylistView, RegisterView, MainView, ArtistView
 
 urlpatterns = [
     path('', MainView.as_view(), name='main'),
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(template_name='login.html'), name='login'),
     path('logout/', LogoutView.as_view(next_page='/'), name='logout'),
-    path('artist/<int:artist_id>/', ArtisView.as_view(), name="artist"),
-    path('__debug__/', include(debug_toolbar.urls)),
+    path('artist/<int:artist_id>/', ArtistView.as_view(), name='artist'),
+    path('songs/<int:song_id>/<str:action>/toggle-favorite/',
+         PlaylistView.as_view(), name='toggle_favorite'),
 ]

@@ -3,7 +3,6 @@
 {% block content %}
 <div class="container mt-4">
     <div class="row">
-        <!-- Фото и основная информация -->
         <div class="col-md-4 text-center">
             {% if artist.image %}
                 <img src="{{ artist.image.url }}" class="img-fluid rounded shadow" alt="{{ artist.name }}" style="max-height: 400px; object-fit: cover;">
@@ -15,10 +14,7 @@
             {% endif %}
             <p class="text-muted">ID: {{ artist.id }}</p>
         </div>
-
-        <!-- Альбомы и песни -->
         <div class="col-md-8">
-            <!-- Альбомы -->
             {% if artist.albums.exists %}
             <div class="mb-4">
                 <h3>Альбомы</h3>
@@ -41,8 +37,6 @@
                 </div>
             </div>
             {% endif %}
-
-            <!-- Песни -->
             {% if artist.songs.exists %}
             <div>
                 <h3>Песни</h3>
