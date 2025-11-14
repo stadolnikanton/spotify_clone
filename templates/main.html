@@ -89,12 +89,10 @@
                                             <form method="post" action="{% url 'rate_song' song.id %}" class="d-inline">
                                                 {% csrf_token %}
                                                 {% for i in "54321" %}
-                                                    {% with rating_value=forloop.revcounter %}
-                                                    <button type="submit" name="rating" value="{{ rating_value }}"
-                                                            class="btn btn-link p-0 border-0 bg-transparent rating-star"
-                                                            title="Оценить на {{ rating_value }}">
-                                                        <i class="{% if song.user_rating >= rating_value %}fas text-warning{% else %}far text-muted{% endif %} fa-star"></i>
-                                                    </button>
+                                                    {% with rating_value=forloop.counter %}
+                                                        <button type="submit" name="rating" value="{{ rating_value }}" class="btn btn-link p-0 border-0 bg-transparent rating-star" title="Оценка {{ rating_value }}">
+                                                            <i class="{% if song.user_rating >= rating_value %}fas text-warning{% else %}far text-muted{% endif %} fa-star"></i>
+                                                        </button>
                                                     {% endwith %}
                                                 {% endfor %}
                                             </form>
