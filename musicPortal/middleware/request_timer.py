@@ -6,6 +6,9 @@ class RequestTimerMiddleWare:
         self.get_response = get_response
 
     def __call__(self, request):
+        time_start = time.time()
         response = self.get_response(request)
-        print("Статус: ")
+        time_end = time.time()
+
+        print(f"Время на обработку запроса: {(time_end - time_start):.2f} sec")
         return response
