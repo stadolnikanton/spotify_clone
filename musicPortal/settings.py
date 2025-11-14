@@ -64,6 +64,8 @@ ACCOUNT_LOGOUT_ON_GET = True
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
+SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
 
 # Настройки для Google OAuth
 SOCIALACCOUNT_PROVIDERS = {
@@ -74,10 +76,16 @@ SOCIALACCOUNT_PROVIDERS = {
         ],
         'AUTH_PARAMS': {
             'access_type': 'online',
+            'prompt': 'select_account',
         },
+        'METHOD': 'oauth2',
         'OAUTH_PKCE_ENABLED': True,
     }
 }
+
+SOCIALACCOUNT_STORE_TOKENS = True
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http'
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
