@@ -2,9 +2,11 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from app.models import Song, Rating
 from api.serializers import SongSerializer, RatingSerializer, RateSongSerializer
+from api.serializers import CustomTokenObtainPairSerializer
 
 
 class SongViewSet(viewsets.ModelViewSet):
@@ -56,3 +58,7 @@ class RatingViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer

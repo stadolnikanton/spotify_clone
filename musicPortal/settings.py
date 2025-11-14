@@ -3,6 +3,9 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from datetime import timedelta
+
+
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,6 +34,8 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'rest_framework',
     'rest_framework.authtoken',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist'
 ]
 
 
@@ -44,6 +49,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -53,10 +59,18 @@ REST_FRAMEWORK = {
 }
 
 
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
+    'ALGORITHM': 'HS256',
+}
+
+
 SITE_ID = 1
 
 
-# Настройки allauth
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
 ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
@@ -67,7 +81,7 @@ LOGOUT_REDIRECT_URL = '/'
 SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_AUTO_SIGNUP = True
 
-# Настройки для Google OAuth
+
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': [
@@ -136,9 +150,6 @@ DATABASES = {
     }
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
