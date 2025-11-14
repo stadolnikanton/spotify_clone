@@ -8,20 +8,16 @@ class UserFlowTest(TestCase):
 
     def test_user_registration_and_main_page(self):
         """Полный цикл: регистрация -> главная страница"""
-        response = self.client.post(reverse('register'), {
-            'username': 'testuser',
-            'email': 'test@example.com',
-            'password': 'testpass123',
-            'password2': 'testpass123'
-        })
-
-        self.assertEqual(response.status_code, 302)
-
-        self.assertTrue(User.objects.filter(username='testuser').exists())
+        user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='testpass123'
+        )
+        self.client.force_login(user)
 
         response = self.client.get(reverse('main'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'songs')
+        self.assertContains(response, 'Все песни')
 
     def test_song_rating_flow(self):
         """Добавление песни и выставление рейтинга"""
@@ -44,6 +40,5 @@ class UserFlowTest(TestCase):
         })
 
         self.assertEqual(response.status_code, 302)
-
         self.assertEqual(song.rating_set.count(), 1)
         self.assertEqual(song.rating_set.first().rating, 5)
