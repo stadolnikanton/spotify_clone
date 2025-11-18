@@ -6,7 +6,6 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-
 from app.forms import RegisterForm
 from app.models import Genre, Playlist, Song, Artist, Rating
 
@@ -82,6 +81,7 @@ class ArtistView(View):
 
 
 class PlaylistView(View):
+
     def post(self, request, song_id, action):
         song = get_object_or_404(Song, id=song_id)
         if action == "toggle":
@@ -119,7 +119,6 @@ class PlaylistView(View):
 
 
 class RateSongView(LoginRequiredMixin, View):
-
     def post(self, request, song_id):
         song = get_object_or_404(Song, id=song_id)
         rating_value = int(request.POST.get('rating', 0))
@@ -133,6 +132,7 @@ class RateSongView(LoginRequiredMixin, View):
 
             song.update_rating_stats()
 
+
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'status': 'success',
@@ -141,5 +141,6 @@ class RateSongView(LoginRequiredMixin, View):
                     'total_ratings': song.total_ratings,
                     'is_new': created
                 })
+
 
         return redirect(request.META.get('HTTP_REFERER', 'main'))
