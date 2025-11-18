@@ -3,8 +3,6 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from datetime import timedelta
-
 
 load_dotenv()
 
@@ -35,7 +33,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
-    'rest_framework_simplejwt.token_blacklist'
+    'rest_framework_simplejwt.token_blacklist',
+    'corsheaders',
+
 ]
 
 
@@ -45,26 +45,11 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 20
-}
-
-
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS': False,
-    'BLACKLIST_AFTER_ROTATION': False,
-    'ALGORITHM': 'HS256',
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
+        "LOCATION": "'127.0.0.1:11211"
+    }
 }
 
 
@@ -77,6 +62,7 @@ ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 ACCOUNT_LOGOUT_ON_GET = True
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
 
 SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_AUTO_SIGNUP = True
@@ -112,8 +98,16 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'musicPortal.middleware.request_timer.RequestTimerMiddleWare',
+    'corsheaders.middleware.CorsMiddleware',
 
 ]
+
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
 
 INTERNAL_IPS = [
     "127.0.0.1",
@@ -183,3 +177,27 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+from datetime import timedelta
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        #'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'ALGORITHM': 'HS256',
+}
+

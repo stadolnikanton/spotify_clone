@@ -1,12 +1,28 @@
+from debug_toolbar.store import serialize
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework.authentication import authenticate
+from rest_framework.decorators import action, permission_classes, authentication_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 from app.models import Song, Rating
 from api.serializers import SongSerializer, RatingSerializer, RateSongSerializer
-from api.serializers import CustomTokenObtainPairSerializer
+from api.serializers import RegisterSerializer
+
+
+class SongListAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        songs = Song.objects.all()
+        serializer = SongSerializer(songs, many=True)
+
+        return Response(serializer.data)
 
 
 class SongViewSet(viewsets.ModelViewSet):
@@ -51,7 +67,7 @@ class SongViewSet(viewsets.ModelViewSet):
 
 class RatingViewSet(viewsets.ModelViewSet):
     serializer_class = RatingSerializer
-    permission_classes = [IsAuthenticated]
+    permission_vclasses = [IsAuthenticated]
 
     def get_queryset(self):
         return Rating.objects.filter(user=self.request.user)
@@ -60,5 +76,44 @@ class RatingViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
-class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
+class RegisterAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+
+            refresh = RefreshToken.for_user(user)
+            refresh.payload.update({
+                'user_id': user.id,
+                'username': user.username
+            })
+
+            return Response({
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            }, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LogoutAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+
+        refresh_token = request.data.get('refresh_token', '')
+        
+        if not refresh_token:
+            return Response({"error": "Нужен refresh_token"})
+        
+        try:
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+
+            return Response({'success': "Выход успешен"}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({'error': 'Неверный Refresh token'}, status=status.HTTP_400_BAD_REQUEST)
+        
