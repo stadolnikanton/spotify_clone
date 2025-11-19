@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from app.models import Artist, Album, Playlist, Song, Genre
+from app.models import Album, Artist, Genre, Playlist, Song
 
 
 @admin.register(Artist)
