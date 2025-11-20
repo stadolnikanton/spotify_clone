@@ -62,10 +62,27 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = User(
-                username=validated_data['username'],
-                email=validated_data.get('email', '')
-            )
+            username=validated_data['username'],
+            email=validated_data.get('email', '')
+        )
         user.set_password(validated_data['password'])
         user.save()
 
         return user
+
+
+class ChangeRateSongSerializer(serializers.ModelSerializer):
+    new_rating = serializers.IntegerField(
+        min_value=0,
+        max_value=5,
+        required=True,
+        help_text="For test"
+    )
+
+    class Meta:
+        model = Rating
+        fields = ('rating')
+
+    def update(self, instance, validated_data):
+        instance = validated_data
+        instance.save()

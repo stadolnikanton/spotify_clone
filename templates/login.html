@@ -2,8 +2,8 @@
 {% load socialaccount %}
 {% block content %}
 <div class="d-flex flex-column align-items-center">
-        <h1>Вход</h1>
-        <form method="post">
+    <h1>Вход</h1>
+    <form method="post">
         {% csrf_token %}
         <p>
             <label class="form-label">Имя пользователя:</label><br>
@@ -15,15 +15,14 @@
         </p>
         <button type="submit" class="btn btn-dark">Войти</button>
         <div class="text-center mb-3">
-                        <span class="text-muted">или</span>
-                    </div>
-                    <div class="text-center">
-                        <a href="{% url 'google_login' %}" class="btn btn-outline-danger w-100">
-
-                            <i class="fab fa-google"></i> Войти через Google
-                        </a>
-                    </div>
-    <p>Нет аккаунта? <a class="btn btn-link" href="{% url 'register' %}">Зарегистрироваться</a></p>
+            <span class="text-muted">или</span>
+        </div>
+        <div class="text-center">
+            <a href="{% url 'google_login' %}" class="btn btn-outline-danger w-100">
+                <i class="fab fa-google"></i> Войти через Google
+            </a>
+        </div>
+        <p>Нет аккаунта? <a class="btn btn-link" href="{% url 'register' %}">Зарегистрироваться</a></p>
     </form>
 </div>
 {% endblock %}

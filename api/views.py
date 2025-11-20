@@ -10,16 +10,16 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.views.decorators.cache import cache_page
 
 from app.models import Song, Rating
-from api.serializers import SongSerializer, RatingSerializer, RateSongSerializer
+from api.serializers import SongSerializer, RatingSerializer, RateSongSerializer, ChangeRateSongSerializer
 from api.serializers import RegisterSerializer
+
+from api.permissions import IsClient, IsManager
 
 
 class SongListAPIView(APIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsManager]
 
-   
-    @cache_page(60 * 15)
     def get(self, request):
         songs = Song.objects.all()
         serializer = SongSerializer(songs, many=True)
@@ -106,10 +106,10 @@ class LogoutAPIView(APIView):
     def post(self, request):
 
         refresh_token = request.data.get('refresh_token', '')
-        
+
         if not refresh_token:
             return Response({"error": "Нужен refresh_token"})
-        
+
         try:
             token = RefreshToken(refresh_token)
             token.blacklist()
@@ -117,5 +117,21 @@ class LogoutAPIView(APIView):
             return Response({'success': "Выход успешен"}, status=status.HTTP_200_OK)
 
         except Exception as e:
+
             return Response({'error': 'Неверный Refresh token'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
+
+# class SetNewRating(APIView):
+#     def post(self, request, pk):
+
+#         rate = Rating.objects.get(pk=pk)
+
+#         serializer = ChangeRateSongSerializer(rate, request)
+
+#         if serialize.is_valid():
+#             return Response({
+#                 "message": "200",
+#                 "rating_id", rate.id
+#             })
+#         else:
+#             return Response

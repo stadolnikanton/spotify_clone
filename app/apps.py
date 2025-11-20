@@ -7,3 +7,7 @@ class AppConfig(AppConfig):
 
     def ready(self):
         import app.signals
+
+
+    def __str__(self):
+        return self.name

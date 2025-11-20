@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import Avg, Count
 
 
+
 class Genre(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
@@ -21,7 +22,8 @@ class Artist(models.Model):
 
 class Album(models.Model):
     title = models.CharField(max_length=200)
-    artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name="albums")
+    artist = models.ForeignKey(
+        Artist, on_delete=models.CASCADE, related_name="albums")
     cover = models.ImageField(upload_to="albums/", blank=True, null=True)
     release_year = models.PositiveSmallIntegerField(blank=True, null=True)
 
@@ -31,11 +33,13 @@ class Album(models.Model):
 
 class Song(models.Model):
     title = models.CharField(max_length=200)
-    artist = models.ForeignKey("Artist", on_delete=models.CASCADE, related_name="songs")
+    artist = models.ForeignKey(
+        "Artist", on_delete=models.CASCADE, related_name="songs")
     album = models.ForeignKey(
         "Album", on_delete=models.SET_NULL, blank=True, null=True, related_name="songs"
     )
-    genre = models.ForeignKey("Genre", on_delete=models.SET_NULL, blank=True, null=True)
+    genre = models.ForeignKey(
+        "Genre", on_delete=models.SET_NULL, blank=True, null=True)
     audio_file = models.FileField(upload_to="songs/", blank=True, null=True)
     average_rating = models.FloatField(default=0)
     total_ratings = models.IntegerField(default=0)
@@ -44,7 +48,8 @@ class Song(models.Model):
         return f"{self.title} -- {self.artist.name}"
 
     def update_rating_stats(self):
-        stats = self.rating_set.aggregate(average=Avg("rating"), count=Count("id"))
+        stats = self.rating_set.aggregate(
+            average=Avg("rating"), count=Count("id"))
 
         self.average_rating = round(stats["average"] or 0, 1)
         self.total_ratings = stats["count"]
@@ -63,6 +68,10 @@ class Rating(models.Model):
 
     def __str__(self):
         return f"{self.rating}"
+
+    @property
+    def change_rating(self):
+        return self.rating * Decimal("1.2")
 
 
 class Playlist(models.Model):
