@@ -1,69 +1,226 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Список товаров{% endblock %}
+{% extends "base.html" %}
 
 {% block content %}
-    <h1 class="mb-4">Список песен</h1>
-
-    <!-- Поиск -->
-    <form method="get" class="text-center mb-4">
-        <div class="input-group w-50 mx-auto">
-            <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Поиск по песне или артисту..."
-                   class="form-control border-success">
-            <button class="btn btn-success" type="submit">🔍 Найти</button>
+<div class="container mt-4">
+    <!-- Сообщения -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    </form>
-
-    <!-- Фильтр по категориям -->
-    <div class="mb-3">
-        <strong>Жанры:</strong>
-        <a href="{% url 'main' %}"
-           class="btn btn-sm {% if not selected_genre %}btn-success{% else %}btn-outline-success{% endif %}">Все</a>
-        {% for genre in genres %}
-            <a href="?genre={{ genre.id }}"
-               class="btn btn-sm {% if genre.id|stringformat:"s" == selected_genre %}btn-success{% else %}btn-outline-success{% endif %}">
-                {{ genre.name }}
-            </a>
         {% endfor %}
     </div>
+    {% endif %}
 
-    <!-- Список песен -->
-    <div class="d-flex flex-column align-items-center">
-        {% for song in songs %}
-            <div class="card mb-3 shadow-sm" style="width: 50%;">
-                <div class="row g-0">
-                    <div class="col-md-4">
-                        {% if song.album.cover %}
-                            <img src="{{ song.album.cover.url }}" class="img-fluid rounded-start"
-                                 alt="{{ song.title }}">
-                        {% else %}
-                            <img src="{% static 'no-image.png' %}" class="img-fluid rounded-start"
-                                 alt="Нет изображения">
-                        {% endif %}
-                    </div>
-                    <div class="col-md-8">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ song.title }}</h5>
-                            <p class="card-text">
-                                <strong>Артист:</strong> {{ song.artist.name }} <br>
-                                <strong>Альбом:</strong> {{ song.album.title }} <br>
-                                <strong>Жанр:</strong> {{ song.genre.name }}
-                            </p>
-                            {% if song.audio_file %}
-                                <audio controls preload="none" style="width: 100%;">
-                                    <source src="{{ song.audio_file.url }}" type="audio/mpeg">
-                                    Ваш браузер не поддерживает аудио.
-                                </audio>
-                            {% else %}
-                                <p class="text-muted">Аудиофайл отсутствует</p>
-                            {% endif %}
+    {% if user.is_authenticated %}
+    <div class="row">
+        <!-- Основной контент -->
+        <div class="col-lg-8">
+            <!-- Поиск -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="mb-0">
+                        <div class="input-group">
+                            <input type="text" name="q" value="{{ request.GET.q }}"
+                                   class="form-control border-success"
+                                   placeholder="Поиск по песне или артисту...">
+                            <button class="btn btn-success" type="submit">
+                                <i class="fas fa-search me-1"></i>Найти
+                            </button>
                         </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Фильтр по жанрам -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h6 class="card-title mb-3"><strong>Фильтр по жанрам</strong></h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{% url 'main' %}"
+                           class="btn btn-sm {% if not selected_genre %}btn-success{% else %}btn-outline-success{% endif %}">
+                            Все
+                        </a>
+                        {% for genre in genres %}
+                        <a href="?genre={{ genre.id }}"
+                           class="btn btn-sm {% if genre.id|stringformat:"s" == selected_genre %}btn-success{% else %}btn-outline-success{% endif %}">
+                            {{ genre.name }}
+                        </a>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
-        {% empty %}
-            <p>Нет доступных песен.</p>
-        {% endfor %}
+
+            <!-- Список песен -->
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">Все песни</h4>
+                </div>
+                <div class="card-body p-0">
+                    {% if songs %}
+                    <div class="list-group list-group-flush">
+                        {% for song in songs %}
+                        <div class="list-group-item p-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="flex-grow-1 me-3">
+                                    <h6 class="mb-1 fw-bold text-truncate">{{ song.title }}</h6>
+                                    <p class="mb-1 small text-muted">
+                                        <a href="{% url 'artist' song.artist.id %}" class="text-decoration-none text-muted">
+                                            {{ song.artist.name }}
+                                        </a>
+                                        {% if song.album %} • {{ song.album.title }}{% endif %}
+                                    </p>
+
+                                    <!-- Блок рейтинга -->
+                                    <div class="song-rating mt-2">
+                                        <!-- Средний рейтинг -->
+                                        <div class="average-rating mb-1">
+                                            <small class="text-muted">
+                                                <i class="fas fa-star text-warning"></i>
+                                                {{ song.average_rating|floatformat:1 }}
+                                                <span class="text-muted">({{ song.total_ratings }})</span>
+                                            </small>
+                                        </div>
+
+                                        <!-- Звезды для оценки -->
+                                        <div class="rating-stars">
+                                            <form method="post" action="{% url 'rate_song' song.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                {% for i in "54321" %}
+                                                    {% with rating_value=forloop.counter %}
+                                                        <button type="submit" name="rating" value="{{ rating_value }}" class="btn btn-link p-0 border-0 bg-transparent rating-star" title="Оценка {{ rating_value }}">
+                                                            <i class="{% if song.user_rating >= rating_value %}fas text-warning{% else %}far text-muted{% endif %} fa-star"></i>
+                                                        </button>
+                                                    {% endwith %}
+                                                {% endfor %}
+                                            </form>
+
+                                            <!-- Текущая оценка пользователя -->
+                                            {% if song.user_rating %}
+                                                <small class="text-muted ms-2">Ваша оценка: {{ song.user_rating }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if song.audio_file %}
+                                    <audio controls class="me-2" style="height: 35px; width: 188px;">
+                                        <source src="{{ song.audio_file.url }}" type="audio/mpeg">
+                                    </audio>
+                                    {% endif %}
+
+                                    <form method="post" action="{% url 'toggle_favorite' song.id 'toggle' %}" class="mb-0">
+                                        {% csrf_token %}
+                                        {% if song.is_favorite %}
+                                        <button type="submit" class="btn btn-danger btn-sm" title="Убрать из избранного">
+                                            <i class="fas fa-heart"></i>
+                                        </button>
+                                        {% else %}
+                                        <button type="submit" class="btn btn-outline-secondary btn-sm" title="Добавить в избранное">
+                                            <i class="far fa-heart"></i>
+                                        </button>
+                                        {% endif %}
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-music fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Песни не найдены</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Боковая панель с плейлистом -->
+        <div class="col-lg-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-heart me-2"></i>
+                        <h5 class="mb-0">Мой плейлист</h5>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted small">Треков: {{ user_favorite_songs.count }}</span>
+                        {% if user_favorite_songs %}
+                        <span class="badge bg-success">Активный</span>
+                        {% endif %}
+                    </div>
+
+                    {% if user_favorite_songs %}
+                    <div class="list-group list-group-flush" style="max-height: 500px; overflow-y: auto;">
+                        {% for song in user_favorite_songs %}
+                        <div class="list-group-item px-0 py-2 border-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="flex-grow-1 me-2">
+                                    <h6 class="mb-1 small fw-bold text-truncate">{{ song.title }}</h6>
+                                    <small class="text-muted text-truncate d-block">{{ song.artist.name }}</small>
+                                    <!-- Рейтинг в плейлисте -->
+                                    {% if song.user_rating %}
+                                    <small class="text-warning">
+                                        <i class="fas fa-star"></i> Ваша оценка: {{ song.user_rating }}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                                <form method="post" action="{% url 'toggle_favorite' song.id 'delete' %}" class="mb-0">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm"
+                                            title="Удалить из плейлиста">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-heart-broken fa-2x text-muted mb-3"></i>
+                        <p class="text-muted small mb-2">Плейлист пуст</p>
+                        <p class="text-muted small">Добавьте песни, нажав на кнопку "Добавить"</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
+    {% else %}
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <h5 class="mb-0">Войдите в систему</h5>
+                    </div>
+                </div>
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-music fa-4x text-warning mb-4"></i>
+                    <h4 class="text-dark mb-3">Добро пожаловать!</h4>
+                    <p class="text-muted mb-4">
+                        Чтобы получить доступ ко всем функциям, включая систему рейтингов, необходимо войти в систему.
+                    </p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="{% url 'login' %}" class="btn btn-success btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>Войти
+                        </a>
+                        <a href="{% url 'register' %}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-user-plus me-2"></i>Зарегистрироваться
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

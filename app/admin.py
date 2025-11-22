@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from app.models import Artist, Album, Song, Genre
+from app.models import Album, Artist, Genre, Playlist, Song
 
 
 @admin.register(Artist)
@@ -20,6 +20,12 @@ class SongAdmin(admin.ModelAdmin):
     list_display = ("id", "title", "artist", "album")
     search_fields = ("title",)
 
+
 @admin.register(Genre)
 class GenreAdmin(admin.ModelAdmin):
     list_display = ("id", "name")
+
+
+@admin.register(Playlist)
+class PlaylistAdmin(admin.ModelAdmin):
+    list_display = ("title",)
