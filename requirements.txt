@@ -1,8 +1,14 @@
+# Python dependencies for Spotify Clone
+# Note: Before installing, make sure you have system dependencies:
+# Linux: sudo apt-get install python3-dev libpq-dev
+# macOS: brew install postgresql
+# Windows: Install PostgreSQL from https://www.postgresql.org/download/windows/
+
 asgiref==3.10.0
 Django==5.2.7
 sqlparse==0.5.3
-django-environ
-psycopg2-binary
-pillow
-dotenv
-django-debug-toolbar
+django-environ==0.11.2
+psycopg2-binary>=2.9.10  # Version 2.9.10+ supports Python 3.13
+Pillow==10.4.0
+python-dotenv==1.0.1
+django-debug-toolbar==4.4.6
