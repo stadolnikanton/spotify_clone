@@ -16,4 +16,5 @@
    alembic upgrade head
 
 3. Старт:
-   python main.py
+    python manage.py migrate
+    python manage.py runserver
